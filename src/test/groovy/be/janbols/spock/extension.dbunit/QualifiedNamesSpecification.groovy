@@ -2,7 +2,9 @@ package be.janbols.spock.extension.dbunit
 
 import groovy.sql.Sql
 import org.apache.tomcat.jdbc.pool.DataSource
+import org.dbunit.DefaultOperationListener
 import org.dbunit.database.DatabaseConfig
+import org.dbunit.database.IDatabaseConnection
 import spock.lang.Specification
 
 import static SpecUtils.inMemoryDataSource
@@ -15,10 +17,15 @@ class QualifiedNamesSpecification extends Specification {
     DataSource dataSource
 
     @DbUnit(configure = {
-        it.connection.config.setProperty(DatabaseConfig.FEATURE_QUALIFIED_TABLE_NAMES, true)
+        it.operationListener = new DefaultOperationListener() {
+            @Override
+            void connectionRetrieved(IDatabaseConnection connection) {
+                super.connectionRetrieved(connection);
+                connection.config.setProperty(DatabaseConfig.FEATURE_QUALIFIED_TABLE_NAMES, true)
+            }
+        }
     })
     def content = {
-        //Foo.Bar(id: 42)
         'Foo.Bar'(id: 42)
     }
 
